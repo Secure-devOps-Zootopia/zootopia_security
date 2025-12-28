@@ -1,0 +1,125 @@
+name: CI Pipeline (PR Security & Build)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "pom.xml"
+      - "Dockerfile"
+      #- ".github/workflows/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "pom.xml"
+      - "Dockerfile"
+
+jobs:
+  ci:
+    name: Build, Test & Security Scans
+    runs-on: ubuntu-latest
+
+    env:
+      ELK_URL: ${{ secrets.ELK_URL }}
+      ELK_API_KEY: ${{ secrets.ELK_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+          severity: CRITICAL
+        continue-on-error: false
+
+      - name: Build and run tests
+        run: mvn clean verify
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          fail-on-severity: CRITICAL
+        continue-on-error: false
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v1.3.0
+        with:
+          scan-type: fs
+          severity: CRITICAL
+          format: sarif
+          output: trivy-fs-report.sarif
+        continue-on-error: false
+
+      # ----------------------
+      # Docker image scan (temporary image for CI only)
+      # ----------------------
+      - name: Build temporary Docker image for scanning
+        if: fileExists('Dockerfile')
+        run: docker build -t spring-backend:ci-temp .
+
+      - name: Trivy Docker image scan
+        if: fileExists('Dockerfile')
+        uses: aquasecurity/trivy-action@v1.3.0
+        with:
+          image-ref: spring-backend:ci-temp
+          severity: CRITICAL
+          format: sarif
+          output: trivy-image-report.sarif
+        continue-on-error: false
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        continue-on-error: false
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.json
+
+      - name: Push Security Artifacts to ELK/Audit Log
+        run: |
+          for file in trivy-fs-report.sarif trivy-image-report.sarif sbom.json; do
+            if [ -f "$file" ]; then
+              echo "Pushing $file to ELK"
+              curl -X POST "$ELK_URL/_bulk" \
+                -H "Authorization: Bearer $ELK_API_KEY" \
+                -H 'Content-Type: application/json' \
+                --data-binary @"$file"
+            else
+              echo "$file not found, skipping"
+            fi
+          done
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            trivy-fs-report.sarif
+            trivy-image-report.sarif
+            sbom.json
