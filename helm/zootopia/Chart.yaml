@@ -1,0 +1,6 @@
+apiVersion: v2
+name: zootopia
+description: Secure-by-default deployment template for Zootopia
+type: application
+version: 0.1.0
+appVersion: "1.0"
