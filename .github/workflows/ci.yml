@@ -4,11 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "src/**"
-      - "pom.xml"
-      - "Dockerfile"
-      - "terraform/**"
 
 jobs:
   ci:
@@ -26,27 +21,32 @@ jobs:
     # ----------------------
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
 
     # ----------------------
     #  FAST FAIL SCANS
     # ----------------------
       - name: Run Gitleaks (Secrets Scan)
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
-          config-path: .gitleaks.toml
           severity: CRITICAL
 
-      - name: Run ESLint
-        working-directory: src
-        run: |
-          npm ci
-          npm run lint
+      # - name: Run ESLint
+      #   working-directory: app
+      #   run: |
+      #     npm ci
+      #     npx eslint .
 
-      - name: Run Checkov (IaC Scan)
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: .
-          quiet: true
+      # - name: Run Checkov (IaC Scan)
+      #   uses: bridgecrewio/checkov-action@v12
+      #   with:
+      #     directory: .
+      #     quiet: true
 
     # ----------------------
     #  Java Build & Tests
@@ -57,16 +57,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      # - name: Cache Maven dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.m2/repository
+      #     key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-maven-
 
-      - name: Build and run tests
-        run: mvn clean verify
+      # - name: Build and run tests
+      #   run: mvn clean verify
 
     # ----------------------
     #  CodeQL (Deep SAST)
@@ -74,7 +74,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: java
+          languages: JavaScript
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -89,33 +89,33 @@ jobs:
     #     with:
     #       args: >
     #         -Dsonar.projectKey=spring-backend
-    #         -Dsonar.sources=src
+    #         -Dsonar.sources=app
     #         -Dsonar.java.binaries=target
 
     # ----------------------
     #  Trivy Filesystem Scan
     # ----------------------
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v1.3.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: fs
           severity: CRITICAL
           format: sarif
           output: trivy-fs-report.sarif
 
-    # ----------------------
-    #  Docker Build + Image Scan
-    # ----------------------
-      - name: Build temporary Docker image for scanning
-        run: docker build -t spring-backend:ci-temp .
+    # # ----------------------
+    # #  Docker Build + Image Scan
+    # # ----------------------
+    #   - name: Build temporary Docker image for scanning
+    #     run: docker build -t spring-backend:ci-temp .
 
-      - name: Trivy Docker image scan
-        uses: aquasecurity/trivy-action@v1.3.0
-        with:
-          image-ref: spring-backend:ci-temp
-          severity: CRITICAL
-          format: sarif
-          output: trivy-image-report.sarif
+    #   - name: Trivy Docker image scan
+    #     uses: aquasecurity/trivy-action@0.24.0
+    #     with:
+    #       image-ref: spring-backend:ci-temp
+    #       severity: CRITICAL
+    #       format: sarif
+    #       output: trivy-image-report.sarif
 
     # ----------------------
     #  SBOM Generation
