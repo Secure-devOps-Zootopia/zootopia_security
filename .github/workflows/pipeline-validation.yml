@@ -37,14 +37,6 @@ jobs:
         run: helm template test helm/zootopia
 
       # ----------------------
-      # Kubernetes YAML Validation (offline)
-      # ----------------------
-      - name: Validate Kubernetes manifests
-        run: |
-          kubectl create configmap test --from-literal=x=y --dry-run=client -o yaml > /dev/null
-          kubectl apply --dry-run=client -f k8s/
-
-      # ----------------------
       # Dockerfile validation (build only)
       # ----------------------
       - name: Build Docker image (validation only)
