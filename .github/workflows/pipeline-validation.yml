@@ -1,0 +1,53 @@
+name: Template Validation (Helm + K8s + Docker)
+
+on:
+  push:
+    paths:
+      - "k8s/**"
+      - "helm/**"
+      - "app/**"
+      - ".github/workflows/template-validation.yml"
+  pull_request:
+    paths:
+      - "k8s/**"
+      - "helm/**"
+      - "app/**"
+  workflow_dispatch:
+
+jobs:
+  validate-templates:
+    name: Validate Deployment Templates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ----------------------
+      # Helm Validation
+      # ----------------------
+      - name: Install Helm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Lint Helm chart
+        run: helm lint helm/zootopia
+
+      - name: Render Helm chart (template output preview)
+        run: helm template test helm/zootopia
+
+      # ----------------------
+      # Kubernetes YAML Validation (offline)
+      # ----------------------
+      - name: Validate Kubernetes manifests using kubeconform
+        uses: yannh/kubeconform-action@v1
+        with:
+          files: "k8s/*.yaml"
+          strict: true
+          reject: "deprecated"
+
+      # ----------------------
+      # Dockerfile validation (build only)
+      # ----------------------
+      - name: Build Docker image (validation only)
+        run: docker build -t zootopia-template-check ./app
