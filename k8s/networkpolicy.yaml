@@ -3,7 +3,9 @@ kind: NetworkPolicy
 metadata:
   name: deny-all
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app: zootopia
   policyTypes:
     - Ingress
     - Egress
