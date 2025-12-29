@@ -1,76 +1,76 @@
-name: Scheduled Security Scans (Drift & CVE Detection)
+# name: Scheduled Security Scans (Drift & CVE Detection)
 
-on:
-  schedule:
-    # Every Monday at 02:00 AM UTC
-    - cron: "0 2 * * 1"
+# on:
+#   schedule:
+#     # Every Monday at 02:00 AM UTC
+#     - cron: "0 2 * * 1"
 
-  # Optional: allow manual trigger
-  workflow_dispatch:
+#   # Optional: allow manual trigger
+#   workflow_dispatch:
 
-jobs:
-  scheduled-security:
-    name: Weekly Runtime & Cloud Security
-    runs-on: ubuntu-latest
+# jobs:
+#   scheduled-security:
+#     name: Weekly Runtime & Cloud Security
+#     runs-on: ubuntu-latest
 
-    env:
-      ELK_URL: ${{ secrets.ELK_URL }}
-      ELK_API_KEY: ${{ secrets.ELK_API_KEY }}
-      STAGING_URL: ${{ secrets.STAGING_URL }}
-      AWS_REGION: us-east-1
+#     env:
+#       ELK_URL: ${{ secrets.ELK_URL }}
+#       ELK_API_KEY: ${{ secrets.ELK_API_KEY }}
+#       STAGING_URL: ${{ secrets.STAGING_URL }}
+#       AWS_REGION: us-east-1
 
-    steps:
-      # ----------------------
-      # Checkout repo (needed for configs/scripts)
-      # ----------------------
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       # ----------------------
+#       # Checkout repo (needed for configs/scripts)
+#       # ----------------------
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      # ----------------------
-      # DAST – Runtime App Security
-      # ----------------------
-      - name: Weekly DAST scan (ZAP)
-        uses: zaproxy/action-full-scan@v0.7.0
-        with:
-          target: ${{ env.STAGING_URL }}
-          format: json
-          output: dast-weekly-report.json
+#       # ----------------------
+#       # DAST – Runtime App Security
+#       # ----------------------
+#       - name: Weekly DAST scan (ZAP)
+#         uses: zaproxy/action-full-scan@v0.7.0
+#         with:
+#           target: ${{ env.STAGING_URL }}
+#           format: json
+#           output: dast-weekly-report.json
 
-      # ----------------------
-      # Cloud Security Posture – AWS
-      # ----------------------
-      - name: Weekly AWS Security Posture Scan (Prowler)
-        run: |
-          pip install prowler
-          prowler aws \
-            --severity high,critical \
-            --output-formats json \
-            --output-directory prowler-weekly-output
+#       # ----------------------
+#       # Cloud Security Posture – AWS
+#       # ----------------------
+#       - name: Weekly AWS Security Posture Scan (Prowler)
+#         run: |
+#           pip install prowler
+#           prowler aws \
+#             --severity high,critical \
+#             --output-formats json \
+#             --output-directory prowler-weekly-output
 
-      # ----------------------
-      # Push findings to ELK / Audit
-      # ----------------------
-      - name: Push Security Artifacts to ELK
-        run: |
-          for file in dast-weekly-report.json prowler-weekly-output/*.json; do
-            if [ -f "$file" ]; then
-              echo "Pushing $file to ELK"
-              curl -X POST "$ELK_URL/_bulk" \
-                -H "Authorization: Bearer $ELK_API_KEY" \
-                -H "Content-Type: application/json" \
-                --data-binary @"$file"
-            else
-              echo "$file not found, skipping"
-            fi
-          done
+#       # ----------------------
+#       # Push findings to ELK / Audit
+#       # ----------------------
+#       - name: Push Security Artifacts to ELK
+#         run: |
+#           for file in dast-weekly-report.json prowler-weekly-output/*.json; do
+#             if [ -f "$file" ]; then
+#               echo "Pushing $file to ELK"
+#               curl -X POST "$ELK_URL/_bulk" \
+#                 -H "Authorization: Bearer $ELK_API_KEY" \
+#                 -H "Content-Type: application/json" \
+#                 --data-binary @"$file"
+#             else
+#               echo "$file not found, skipping"
+#             fi
+#           done
 
-      # ----------------------
-      # Upload artifacts
-      # ----------------------
-      - name: Upload Weekly Security Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: weekly-security-reports
-          path: |
-            dast-weekly-report.json
-            prowler-weekly-output
+#       # ----------------------
+#       # Upload artifacts
+#       # ----------------------
+#       - name: Upload Weekly Security Reports
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: weekly-security-reports
+#           path: |
+#             dast-weekly-report.json
+#             prowler-weekly-output

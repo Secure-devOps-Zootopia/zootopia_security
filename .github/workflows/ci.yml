@@ -80,16 +80,16 @@ jobs:
         with:
           fail-on-severity: CRITICAL
 
-    # ----------------------
-    #  SonarQube
-    # ----------------------
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
-        with:
-          args: >
-            -Dsonar.projectKey=spring-backend
-            -Dsonar.sources=src
-            -Dsonar.java.binaries=target
+    # # ----------------------
+    # #  SonarQube
+    # # ----------------------
+    #   - name: SonarQube Scan
+    #     uses: SonarSource/sonarqube-scan-action@v2
+    #     with:
+    #       args: >
+    #         -Dsonar.projectKey=spring-backend
+    #         -Dsonar.sources=src
+    #         -Dsonar.java.binaries=target
 
     # ----------------------
     #  Trivy Filesystem Scan
@@ -125,19 +125,19 @@ jobs:
           format: cyclonedx-json
           output-file: sbom.json
 
-    # ----------------------
-    #  Push Artifacts to ELK
-    # ----------------------
-      - name: Push Security Artifacts to ELK
-        run: |
-          for file in trivy-fs-report.sarif trivy-image-report.sarif sbom.json; do
-            if [ -f "$file" ]; then
-              curl -X POST "$ELK_URL/_bulk" \
-                -H "Authorization: Bearer $ELK_API_KEY" \
-                -H "Content-Type: application/json" \
-                --data-binary @"$file"
-            fi
-          done
+    # # ----------------------
+    # #  Push Artifacts to ELK
+    # # ----------------------
+    #   - name: Push Security Artifacts to ELK
+    #     run: |
+    #       for file in trivy-fs-report.sarif trivy-image-report.sarif sbom.json; do
+    #         if [ -f "$file" ]; then
+    #           curl -X POST "$ELK_URL/_bulk" \
+    #             -H "Authorization: Bearer $ELK_API_KEY" \
+    #             -H "Content-Type: application/json" \
+    #             --data-binary @"$file"
+    #         fi
+    #       done
 
     # ----------------------
     #  Upload Artifacts

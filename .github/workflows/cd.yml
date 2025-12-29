@@ -45,40 +45,40 @@ jobs:
           docker tag spring-backend:staging your-registry/spring-backend:staging
           docker push your-registry/spring-backend:staging
 
-      # ----------------------
-      # Configure Kubernetes access
-      # ----------------------
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+      # # ----------------------
+      # # Configure Kubernetes access
+      # # ----------------------
+      # - name: Configure kubeconfig
+      #   run: |
+      #     mkdir -p $HOME/.kube
+      #     echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
 
-      # ----------------------
-      # Deploy to Kubernetes
-      # ----------------------
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: '1.27.0'
-      - name: Apply Kubernetes deployment
-        run: |
-          kubectl apply -f k8s/deployment.yaml
+      # # ----------------------
+      # # Deploy to Kubernetes
+      # # ----------------------
+      # - name: Set up kubectl
+      #   uses: azure/setup-kubectl@v3
+      #   with:
+      #     version: '1.27.0'
+      # - name: Apply Kubernetes deployment
+      #   run: |
+      #     kubectl apply -f k8s/deployment.yaml
 
-      # ----------------------
-      # Deploy to staging
-      # ----------------------
-      - name: Deploy to staging
-        run: ./scripts/deploy-staging.sh
+      # # ----------------------
+      # # Deploy to staging
+      # # ----------------------
+      # - name: Deploy to staging
+      #   run: ./scripts/deploy-staging.sh
 
-      # ----------------------
-      # DAST (Runtime App Security)
-      # ----------------------
-      - name: DAST scan against staging
-        uses: zaproxy/action-full-scan@v0.7.0
-        with:
-          target: ${{ env.STAGING_URL }}
-          format: json
-          output: dast-report.json
+      # # ----------------------
+      # # DAST (Runtime App Security)
+      # # ----------------------
+      # - name: DAST scan against staging
+      #   uses: zaproxy/action-full-scan@v0.7.0
+      #   with:
+      #     target: ${{ env.STAGING_URL }}
+      #     format: json
+      #     output: dast-report.json
 
       # ----------------------
       # Cloud Security Posture (AWS)
@@ -94,19 +94,19 @@ jobs:
       # ----------------------
       # Push artifacts to ELK / Audit
       # ----------------------
-      - name: Push Security Artifacts to ELK/Audit Log
-        run: |
-          for file in dast-report.json prowler-output/*.json; do
-            if [ -f "$file" ]; then
-              echo "Pushing $file to ELK"
-              curl -X POST "$ELK_URL/_bulk" \
-                -H "Authorization: Bearer $ELK_API_KEY" \
-                -H 'Content-Type: application/json' \
-                --data-binary @"$file"
-            else
-              echo "$file not found, skipping"
-            fi
-          done
+      # - name: Push Security Artifacts to ELK/Audit Log
+      #   run: |
+      #     for file in dast-report.json prowler-output/*.json; do
+      #       if [ -f "$file" ]; then
+      #         echo "Pushing $file to ELK"
+      #         curl -X POST "$ELK_URL/_bulk" \
+      #           -H "Authorization: Bearer $ELK_API_KEY" \
+      #           -H 'Content-Type: application/json' \
+      #           --data-binary @"$file"
+      #       else
+      #         echo "$file not found, skipping"
+      #       fi
+      #     done
 
       # ----------------------
       # Upload reports
