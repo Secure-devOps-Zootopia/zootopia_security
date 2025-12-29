@@ -45,21 +45,23 @@ jobs:
       #     docker tag spring-backend:staging your-registry/spring-backend:staging
       #     docker push your-registry/spring-backend:staging
 
-      # ----------------------
-      # Configure Kubernetes access
-      # ----------------------
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+      # # ----------------------
+      # # Configure Kubernetes access
+      # # ----------------------
+      # - name: Configure kubeconfig
+      #   run: |
+      #     mkdir -p $HOME/.kube
+      #     echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
 
-      # ----------------------
+      # # ----------------------
       # Deploy to Kubernetes
       # ----------------------
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
     
-    
+      - name: Set up kind cluster
+        uses: engineerd/setup-kind@v0.6.0
+
       - name: Apply Kubernetes deployment
         run: |
           kubectl apply -f k8s/deployment.yaml
