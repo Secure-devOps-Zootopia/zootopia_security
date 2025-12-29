@@ -59,7 +59,7 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: '1.27.0'
+          version: '1.26.8'
       - name: Apply Kubernetes deployment
         run: |
           kubectl apply -f k8s/deployment.yaml
