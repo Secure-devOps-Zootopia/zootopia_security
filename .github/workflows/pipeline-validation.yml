@@ -2,34 +2,52 @@ name: Template Validation & Security Scans
 
 on:
   push:
+    paths:
+      - "k8s/**"
+      - "helm/**"
+      - "app/**"
+      - ".github/workflows/template-validation.yml"
   pull_request:
+    paths:
+      - "k8s/**"
+      - "helm/**"
+      - "app/**"
   workflow_dispatch:
 
 jobs:
-  validate-and-scan:
+  validate-templates:
+    name: Validate Deployment Templates
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Validate Helm chart
+      # ----------------------
+      # Helm Validation
+      # ----------------------
       - name: Install Helm
         run: |
           curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-      - name: Lint Helm Chart
+
+      - name: Lint Helm chart
         run: helm lint helm/zootopia
 
-      # Validate Kubernetes yaml
-      - name: Install kubectl
-        run: |
-          sudo curl -L https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
-          sudo chmod +x /usr/local/bin/kubectl
-      - name: Validate Kubernetes manifests
-        run: kubectl apply --dry-run=client -f k8s/
+      - name: Render Helm chart (template output preview)
+        run: helm template test helm/zootopia
 
-      # Build Docker image (validation only)
-      - name: Build Docker Image
-        run: docker build -t zootopia-test ./app
+      # ----------------------
+      # Kubernetes YAML Validation (offline)
+      # ----------------------
+      - name: Validate Kubernetes manifests using kubeconform
+        uses: yannh/kubeconform-action@v1
+        with:
+          files: "k8s/*.yaml"
+          strict: true
+          reject: "deprecated"
 
-    
+      # ----------------------
+      # Dockerfile validation (build only)
+      # ----------------------
+      - name: Build Docker image (validation only)
+        run: docker build -t zootopia-template-check ./app
