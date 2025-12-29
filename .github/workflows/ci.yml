@@ -91,7 +91,7 @@ jobs:
     #  Trivy Filesystem Scan
     # ----------------------
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v1.3.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: fs
           severity: CRITICAL
@@ -105,7 +105,7 @@ jobs:
         run: docker build -t spring-backend:ci-temp .
 
       - name: Trivy Docker image scan
-        uses: aquasecurity/trivy-action@v1.3.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: spring-backend:ci-temp
           severity: CRITICAL
