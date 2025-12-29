@@ -8,7 +8,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Install only production deps
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
+# RUN npm ci --only=production
 
 # Copy app code
 COPY . .
