@@ -40,7 +40,7 @@ jobs:
       # Kubernetes YAML Validation (offline)
       # ----------------------
       - name: Validate Kubernetes manifests using kubeconform
-        uses: yannh/kubeconform-action@v1
+        uses: kubeconform/github-action@v1
         with:
           files: "k8s/*.yaml"
           strict: true
