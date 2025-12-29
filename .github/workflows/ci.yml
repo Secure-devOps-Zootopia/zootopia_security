@@ -1,21 +1,13 @@
 name: CI Pipeline (PR Security & Build)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "src/**"
-      - "pom.xml"
-      - "Dockerfile"
-      #- ".github/workflows/**"
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
     paths:
       - "src/**"
       - "pom.xml"
       - "Dockerfile"
+      - "terraform/**"
 
 jobs:
   ci:
@@ -25,11 +17,39 @@ jobs:
     env:
       ELK_URL: ${{ secrets.ELK_URL }}
       ELK_API_KEY: ${{ secrets.ELK_API_KEY }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
+    # ----------------------
+    #  Checkout
+    # ----------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+    # ----------------------
+    #  FAST FAIL SCANS
+    # ----------------------
+      - name: Run Gitleaks (Secrets Scan)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+          severity: CRITICAL
+
+      - name: Run ESLint
+        working-directory: src
+        run: |
+          npm ci
+          npm run lint
+
+      - name: Run Checkov (IaC Scan)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          quiet: true
+
+    # ----------------------
+    #  Java Build & Tests
+    # ----------------------
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -44,16 +64,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-          severity: CRITICAL
-        continue-on-error: false
-
       - name: Build and run tests
         run: mvn clean verify
 
+    # ----------------------
+    #  CodeQL (Deep SAST)
+    # ----------------------
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -63,8 +79,21 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           fail-on-severity: CRITICAL
-        continue-on-error: false
 
+    # ----------------------
+    #  SonarQube
+    # ----------------------
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        with:
+          args: >
+            -Dsonar.projectKey=spring-backend
+            -Dsonar.sources=src
+            -Dsonar.java.binaries=target
+
+    # ----------------------
+    #  Trivy Filesystem Scan
+    # ----------------------
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@v1.3.0
         with:
@@ -72,12 +101,10 @@ jobs:
           severity: CRITICAL
           format: sarif
           output: trivy-fs-report.sarif
-        continue-on-error: false
 
-      # ----------------------
-      # Docker image scan (temporary image for CI only)
-      # ----------------------
-      
+    # ----------------------
+    #  Docker Build + Image Scan
+    # ----------------------
       - name: Build temporary Docker image for scanning
         run: docker build -t spring-backend:ci-temp .
 
@@ -88,32 +115,33 @@ jobs:
           severity: CRITICAL
           format: sarif
           output: trivy-image-report.sarif
-        continue-on-error: false
 
-      - name: Run Checkov
-        uses: bridgecrewio/checkov-action@v12
-        continue-on-error: false
-
+    # ----------------------
+    #  SBOM Generation
+    # ----------------------
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
           format: cyclonedx-json
           output-file: sbom.json
 
-      - name: Push Security Artifacts to ELK/Audit Log
+    # ----------------------
+    #  Push Artifacts to ELK
+    # ----------------------
+      - name: Push Security Artifacts to ELK
         run: |
           for file in trivy-fs-report.sarif trivy-image-report.sarif sbom.json; do
             if [ -f "$file" ]; then
-              echo "Pushing $file to ELK"
               curl -X POST "$ELK_URL/_bulk" \
                 -H "Authorization: Bearer $ELK_API_KEY" \
-                -H 'Content-Type: application/json' \
+                -H "Content-Type: application/json" \
                 --data-binary @"$file"
-            else
-              echo "$file not found, skipping"
             fi
           done
 
+    # ----------------------
+    #  Upload Artifacts
+    # ----------------------
       - name: Upload Security Reports
         uses: actions/upload-artifact@v4
         with:
@@ -122,4 +150,3 @@ jobs:
             trivy-fs-report.sarif
             trivy-image-report.sarif
             sbom.json
-
