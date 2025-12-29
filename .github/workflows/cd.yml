@@ -1,6 +1,7 @@
 name: CD Pipeline (Post-Merge Deployment & Runtime Security)
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -82,16 +83,18 @@ jobs:
       # - name: Deploy to staging
       #   run: ./scripts/deploy-staging.sh
 
-      # # ----------------------
-      # # DAST (Runtime App Security)
-      # # ----------------------
-      # - name: DAST scan against staging
-      #   uses: zaproxy/action-full-scan@v0.7.0
-      #   with:
-      #     target: ${{ env.STAGING_URL }}
-      #     format: json
-      #     output: dast-report.json
-
+      # ----------------------
+      # DAST (Runtime App Security)
+      # ----------------------
+      - name: Start port-forward
+        run: kubectl port-forward deployment/zootopia-app 3000:3000 &
+     
+      - name: Run DAST scan
+        uses: zaproxy/action-full-scan@v0.7.0
+        with:
+          target: http://localhost:3000
+          format: json
+          output: dast-report.json
       # ----------------------
       # Cloud Security Posture (AWS)
       # ----------------------
