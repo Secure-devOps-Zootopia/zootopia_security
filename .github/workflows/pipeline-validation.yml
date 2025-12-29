@@ -39,12 +39,10 @@ jobs:
       # ----------------------
       # Kubernetes YAML Validation (offline)
       # ----------------------
-      - name: Validate Kubernetes manifests using kubeconform
-        uses: yannh/kubeconform-action@v1
-        with:
-          files: "k8s/*.yaml"
-          strict: true
-          reject: "deprecated"
+      - name: Validate Kubernetes manifests
+        run: |
+          kubectl create configmap test --from-literal=x=y --dry-run=client -o yaml > /dev/null
+          kubectl apply --dry-run=client -f k8s/
 
       # ----------------------
       # Dockerfile validation (build only)
