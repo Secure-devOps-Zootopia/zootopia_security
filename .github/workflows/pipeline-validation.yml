@@ -1,4 +1,4 @@
-name: Template Validation & Security Scans
+name: Template Validation (Helm + K8s + Docker)
 
 on:
   push:
