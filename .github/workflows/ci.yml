@@ -77,12 +77,11 @@ jobs:
       # ----------------------
       # Docker image scan (temporary image for CI only)
       # ----------------------
+      
       - name: Build temporary Docker image for scanning
-        if: fileExists('Dockerfile')
         run: docker build -t spring-backend:ci-temp .
 
       - name: Trivy Docker image scan
-        if: fileExists('Dockerfile')
         uses: aquasecurity/trivy-action@v1.3.0
         with:
           image-ref: spring-backend:ci-temp
@@ -123,3 +122,4 @@ jobs:
             trivy-fs-report.sarif
             trivy-image-report.sarif
             sbom.json
+
