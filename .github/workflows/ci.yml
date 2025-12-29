@@ -34,11 +34,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
-          config-path: .gitleaks.toml
           severity: CRITICAL
 
       - name: Run ESLint
-        working-directory: src
+        working-directory: app
         run: |
           npm ci
           npm run lint
@@ -90,7 +89,7 @@ jobs:
     #     with:
     #       args: >
     #         -Dsonar.projectKey=spring-backend
-    #         -Dsonar.sources=src
+    #         -Dsonar.sources=app
     #         -Dsonar.java.binaries=target
 
     # ----------------------
