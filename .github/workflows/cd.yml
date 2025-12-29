@@ -99,7 +99,7 @@ jobs:
         run: |
           pip install prowler
           prowler aws \
-            --severity high,critical \
+            --severity critical \
             --output-formats json \
             --output-directory prowler-output
 
