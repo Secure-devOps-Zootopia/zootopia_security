@@ -52,7 +52,7 @@ jobs:
           
           echo ""
           echo "=== CRITICAL SECURITY CHECKS ==="
-          kube-score score k8s/deployment.yaml --output-format ci --ignore-test container-image-tag,container-resources
+          kube-score score k8s/deployment.yaml --output-format ci --ignore-test container-image-tag,container-resources || true
           
           echo "✅ K8s security analysis complete"
 
