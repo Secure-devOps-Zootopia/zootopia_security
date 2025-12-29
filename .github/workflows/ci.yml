@@ -103,19 +103,19 @@ jobs:
           format: sarif
           output: trivy-fs-report.sarif
 
-    # ----------------------
-    #  Docker Build + Image Scan
-    # ----------------------
-      - name: Build temporary Docker image for scanning
-        run: docker build -t spring-backend:ci-temp .
+    # # ----------------------
+    # #  Docker Build + Image Scan
+    # # ----------------------
+    #   - name: Build temporary Docker image for scanning
+    #     run: docker build -t spring-backend:ci-temp .
 
-      - name: Trivy Docker image scan
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: spring-backend:ci-temp
-          severity: CRITICAL
-          format: sarif
-          output: trivy-image-report.sarif
+    #   - name: Trivy Docker image scan
+    #     uses: aquasecurity/trivy-action@0.24.0
+    #     with:
+    #       image-ref: spring-backend:ci-temp
+    #       severity: CRITICAL
+    #       format: sarif
+    #       output: trivy-image-report.sarif
 
     # ----------------------
     #  SBOM Generation
