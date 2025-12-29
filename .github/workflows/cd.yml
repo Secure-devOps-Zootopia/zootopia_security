@@ -60,10 +60,10 @@ jobs:
         uses: azure/setup-kubectl@v3
     
       - name: Set up kind cluster
-        uses: eengineerd/setup-kind@v0.6.0
+        uses: engineerd/setup-kind@v0.6.0
         with:
           version: "v0.24.0"
-          
+
       - name: Check cluster
         run: kubectl cluster-info
 
