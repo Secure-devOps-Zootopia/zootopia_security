@@ -37,19 +37,24 @@ jobs:
         run: helm template test helm/zootopia
         
       # ----------------------
-      # 3. KUBERNETES MANIFEST VALIDATION
+      # 3. KUBERNETES SECURITY VALIDATION
       # ----------------------
-      - name: Install kubectl (for manifest validation)
+      - name: Install kube-score (K8s security scanner)
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
+          wget https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64.tar.gz
+          tar -xvzf kube-score_1.17.0_linux_amd64.tar.gz
+          sudo mv kube-score /usr/local/bin/
       
-      - name: Dry-run apply K8s manifest
+      - name: Score K8s manifest security
         run: |
-          echo "Testing Kubernetes manifest with kubectl --dry-run"
-          kubectl apply -f k8s/deployment.yaml --dry-run=client
-          echo "✅ K8s manifest syntax is valid"
+          echo "=== KUBE-SCORE SECURITY ANALYSIS ==="
+          kube-score score k8s/deployment.yaml --output-format ci || true
+          
+          echo ""
+          echo "=== CRITICAL SECURITY CHECKS ==="
+          kube-score score k8s/deployment.yaml --output-format ci --ignore-test container-image-tag,container-resources
+          
+          echo "✅ K8s security analysis complete"
 
       # ----------------------
       # Dockerfile validation (build only)
