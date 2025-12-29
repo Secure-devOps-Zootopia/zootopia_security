@@ -46,6 +46,25 @@ jobs:
           docker push your-registry/spring-backend:staging
 
       # ----------------------
+      # Configure Kubernetes access
+      # ----------------------
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+
+      # ----------------------
+      # Deploy to Kubernetes
+      # ----------------------
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.27.0'
+      - name: Apply Kubernetes deployment
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+
+      # ----------------------
       # Deploy to staging
       # ----------------------
       - name: Deploy to staging
