@@ -15,6 +15,7 @@ spec:
       containers:
       - name: zootopia
         image: zootopia/app:1.0
+        imagePullPolicy: Always
         ports:
           - containerPort: 3000
         securityContext:
@@ -25,6 +26,8 @@ spec:
           requests:
             cpu: "100m"
             memory: "128Mi"
+            ephemeral-storage: "256Mi"
           limits:
             cpu: "500m"
             memory: "256Mi"
+            ephemeral-storage: "512Mi" 
