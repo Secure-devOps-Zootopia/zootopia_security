@@ -1,16 +1,14 @@
-name: Template Validation (Helm + K8s + Docker)
+name: Template Validation (K8s + Docker)
 
 on:
   push:
     paths:
       - "k8s/**"
-      - "helm/**"
       - "app/**"
       - ".github/workflows/template-validation.yml"
   pull_request:
     paths:
       - "k8s/**"
-      - "helm/**"
       - "app/**"
   workflow_dispatch:
 
@@ -23,21 +21,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+    
       # ----------------------
-      # Helm Validation
-      # ----------------------
-      - name: Install Helm
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-      - name: Lint Helm chart
-        run: helm lint helm/zootopia
-
-      - name: Render Helm chart (template output preview)
-        run: helm template test helm/zootopia
-        
-      # ----------------------
-      # 3. KUBERNETES SECURITY VALIDATION
+      #  KUBERNETES SECURITY VALIDATION
       # ----------------------
       - name: Install kube-score (K8s security scanner)
         run: |
