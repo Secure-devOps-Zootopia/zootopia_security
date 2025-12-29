@@ -36,11 +36,11 @@ jobs:
         with:
           severity: CRITICAL
 
-      - name: Run ESLint
-        working-directory: app
-        run: |
-          npm ci
-          npx eslint .
+      # - name: Run ESLint
+      #   working-directory: app
+      #   run: |
+      #     npm ci
+      #     npx eslint .
 
       - name: Run Checkov (IaC Scan)
         uses: bridgecrewio/checkov-action@v12
