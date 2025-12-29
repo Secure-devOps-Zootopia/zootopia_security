@@ -35,7 +35,21 @@ jobs:
 
       - name: Render Helm chart (template output preview)
         run: helm template test helm/zootopia
-
+        
+      # ----------------------
+      # 3. KUBERNETES MANIFEST VALIDATION
+      # ----------------------
+      - name: Install kubectl (for manifest validation)
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+      
+      - name: Dry-run apply K8s manifest
+        run: |
+          echo "Testing Kubernetes manifest with kubectl --dry-run"
+          kubectl apply -f k8s/deployment.yaml --dry-run=client
+          echo "✅ K8s manifest syntax is valid"
 
       # ----------------------
       # Dockerfile validation (build only)
