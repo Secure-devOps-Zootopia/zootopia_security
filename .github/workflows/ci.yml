@@ -40,7 +40,7 @@ jobs:
         working-directory: app
         run: |
           npm ci
-          npm run lint
+          npx eslint .
 
       - name: Run Checkov (IaC Scan)
         uses: bridgecrewio/checkov-action@v12
