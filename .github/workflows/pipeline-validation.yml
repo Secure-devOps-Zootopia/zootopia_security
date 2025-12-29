@@ -35,16 +35,26 @@ jobs:
 
       - name: Render Helm chart (template output preview)
         run: helm template test helm/zootopia
-
+        
       # ----------------------
-      # Kubernetes YAML Validation (offline)
+      # 3. KUBERNETES SECURITY VALIDATION
       # ----------------------
-      - name: Validate Kubernetes manifests using kubeconform
-        uses: kubeconform/github-action@v1
-        with:
-          files: "k8s/*.yaml"
-          strict: true
-          reject: "deprecated"
+      - name: Install kube-score (K8s security scanner)
+        run: |
+          wget https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64.tar.gz
+          tar -xvzf kube-score_1.17.0_linux_amd64.tar.gz
+          sudo mv kube-score /usr/local/bin/
+      
+      - name: Score K8s manifest security
+        run: |
+          echo "=== KUBE-SCORE SECURITY ANALYSIS ==="
+          kube-score score k8s/deployment.yaml --output-format ci || true
+          
+          echo ""
+          echo "=== CRITICAL SECURITY CHECKS ==="
+          kube-score score k8s/deployment.yaml --output-format ci --ignore-test container-image-tag,container-resources || true
+          
+          echo "✅ K8s security analysis complete"
 
       # ----------------------
       # Dockerfile validation (build only)

@@ -1,18 +1,19 @@
-name: CD Pipeline
+name: CD Pipeline (Post-Merge Deployment & Runtime Security)
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-    paths:
-      - "Dockerfile"
-      - "src/**"
-      #- ".github/workflows/**"
+    types:
+      - closed   # We only care about merge events
 
 jobs:
   cd:
-    name: Build, Deploy & Security Testing
+    name: Deploy, DAST & Cloud Security
     runs-on: ubuntu-latest
+
+    # Run ONLY if PR was merged
+    if: github.event.pull_request.merged == true
 
     env:
       ELK_URL: ${{ secrets.ELK_URL }}
@@ -21,6 +22,9 @@ jobs:
       AWS_REGION: us-east-1
 
     steps:
+      # ----------------------
+      # Checkout merged code
+      # ----------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -37,8 +41,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push Docker image to registry
-        run:
-          docker tag spring-backend:staging your-registry/spring-backend:staging && \
+        run: |
+          docker tag spring-backend:staging your-registry/spring-backend:staging
           docker push your-registry/spring-backend:staging
 
       # ----------------------
@@ -48,30 +52,32 @@ jobs:
         run: ./scripts/deploy-staging.sh
 
       # ----------------------
-      # DAST scan
+      # DAST (Runtime App Security)
       # ----------------------
       - name: DAST scan against staging
         uses: zaproxy/action-full-scan@v0.7.0
         with:
           target: ${{ env.STAGING_URL }}
-          format: "json"
+          format: json
           output: dast-report.json
 
       # ----------------------
-      # Optional Cloud Posture Scan
+      # Cloud Security Posture (AWS)
       # ----------------------
-      - name: Run AWS Security Posture Scan
+      - name: Run AWS Security Posture Scan (Prowler)
         run: |
-          echo "Running cloud posture scan"
-          # Example: Prowler or Security Hub
-          # prowler -M json > prowler-report.json
+          pip install prowler
+          prowler aws \
+            --severity high,critical \
+            --output-formats json \
+            --output-directory prowler-output
 
       # ----------------------
-      # Push artifacts to ELK / Upload
+      # Push artifacts to ELK / Audit
       # ----------------------
       - name: Push Security Artifacts to ELK/Audit Log
         run: |
-          for file in dast-report.json prowler-report.json; do
+          for file in dast-report.json prowler-output/*.json; do
             if [ -f "$file" ]; then
               echo "Pushing $file to ELK"
               curl -X POST "$ELK_URL/_bulk" \
@@ -83,10 +89,13 @@ jobs:
             fi
           done
 
+      # ----------------------
+      # Upload reports
+      # ----------------------
       - name: Upload Security Reports
         uses: actions/upload-artifact@v4
         with:
           name: cd-security-reports
           path: |
             dast-report.json
-            prowler-report.json
+            prowler-output
