@@ -1,6 +1,7 @@
 name: CI Pipeline (PR Security & Build)
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
