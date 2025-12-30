@@ -98,7 +98,14 @@ jobs:
           severity: CRITICAL
           format: sarif
           output: trivy-image-report.sarif
-
+          
+      - name: Docker Scout CVE Scan
+        continue-on-error: true
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+          docker scout cves hlahany/zootopia-petshop:latest --format sarif --output scout-report.sarif 2>&1 || true
+          docker scout cves hlahany/zootopia-petshop:latest > scout-report.txt 2>&1 || true
+          
     # ----------------------
     #  SBOM Generation
     # ----------------------
@@ -132,6 +139,8 @@ jobs:
           path: |
             trivy-fs-report.sarif
             trivy-image-report.sarif
+            scout-report.sarif
+            scout-report.txt
             sbom.json
 
 
