@@ -160,6 +160,58 @@ Docker Compose will:
 
 ---
 
+## 🐳 Docker Hub Setup
+
+1. **Pull the App Image**
+
+```bash
+docker pull hlahany/zootopia-petshop:latest
+```
+
+2. **Create a Docker Network** (optional but recommended for container communication)
+
+```bash
+docker network create zootopia-net
+```
+
+3. **Start MongoDB**
+
+```bash
+docker run -d \
+  --name petshop-mongo \
+  --network zootopia-net \
+  -p 27017:27017 \
+  -v mongo-data:/data/db \
+  mongo:7
+```
+
+* `--network zootopia-net` ensures the app can reach Mongo using the container name (`petshop-mongo`)
+* Data is persisted in a Docker volume `mongo-data`
+
+4. **Run the App Container**
+
+```bash
+docker run -d \
+  --name petshop-app \
+  --network zootopia-net \
+  -p 5000:5000 \
+  -p 3000:3000 \
+  -e MONGO_URI=mongodb://petshop-mongo:27017/petshop \
+  -e BACKEND_PORT=5000 \
+  -e FRONTEND_PORT=3000 \
+  hlahany/zootopia-petshop:latest
+```
+
+* Environment variables override `.env` values inside the container.
+* The app connects to Mongo via `mongodb://petshop-mongo:27017/petshop`.
+
+5. **Access the App**
+
+* Backend: [http://localhost:5000](http://localhost:5000)
+* Frontend: [http://localhost:3000](http://localhost:3000)
+
+---
+
 ## 🧪 Development Notes
 
 * Hot reload enabled via Docker volumes (dev mode)
