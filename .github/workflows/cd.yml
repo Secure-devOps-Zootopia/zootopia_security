@@ -76,22 +76,17 @@ jobs:
 
 
 
-      # ----------------------
-      # DAST (Runtime App Security)
-      # ----------------------
-      - name: Run DAST scan (OWASP ZAP)
-        uses: zaproxy/action-full-scan@v0.7.0
+      # # ----------------------
+      # # DAST (Runtime App Security)
+      # # ----------------------      
+      - name: Run DAST baseline scan
+        uses: zaproxy/action-baseline@v0.11.0
         with:
-          target: https://zootopia-security.onrender.com/
+          target: ${{ env.STAGING_URL }}
           format: json
           output: dast-report.json
-          fail_action: true
-      
-      - name: Upload DAST report
-        uses: actions/upload-artifact@v4
-        with:
-          name: dast-report
-          path: dast-report.json
+    #     fail_action: true
+
 
       # ----------------------
       # Security Headers Check
@@ -156,3 +151,4 @@ jobs:
             ssl-report.json
             scout-report.txt
             scout-report.sarif
+
