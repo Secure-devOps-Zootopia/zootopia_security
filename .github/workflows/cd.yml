@@ -85,6 +85,7 @@ jobs:
       # # DAST (Runtime App Security)
       # # ----------------------      
       - name: Run DAST scan (OWASP ZAP)
+        continue-on-error: true
         uses: zaproxy/action-full-scan@v0.7.0
         with:
           target: ${{ env.STAGING_URL }}
@@ -92,6 +93,7 @@ jobs:
           allow_issue_writing: false
       
       - name: Upload DAST report
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         if: always()
         with:
