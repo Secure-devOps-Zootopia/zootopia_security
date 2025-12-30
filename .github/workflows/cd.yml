@@ -90,7 +90,7 @@ jobs:
           target: ${{ env.STAGING_URL }}
           fail_action: false
           allow_issue_writing: false
-          artifact_name: ''
+          cmd_options: '-config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -port 8090'
       
       - name: Upload DAST report
         uses: actions/upload-artifact@v4
@@ -165,6 +165,7 @@ jobs:
             ssl-report.json
             scout-report.txt
             scout-report.sarif
+
 
 
 
