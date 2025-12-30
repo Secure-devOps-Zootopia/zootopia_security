@@ -1,22 +1,27 @@
 FROM node:20-alpine
 
-# Create app directory
+# Set working directory (like: cd /app)
 WORKDIR /app
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Install only production deps
+# ---- Backend dependencies ----
 COPY package*.json ./
-RUN npm install --omit=dev
-# RUN npm ci --only=production
+RUN npm install
 
-# Copy app code
+# ---- Frontend dependencies ----
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm install
+
+# ---- Copy application source ----
 COPY . .
 
-# Drop privileges
+# ---- Fix permissions ----
+RUN chown -R appuser:appgroup /app
+
+# ---- Drop privileges ----
 USER appuser
 
-EXPOSE 3000
-
-CMD ["node", "server.js"]
+# ---- Populate the database and start dev ----
+CMD sh -c "npm run seed && PORT=$BACKEND_PORT npm run server & PORT=$FRONTEND_PORT npm start --prefix frontend"
