@@ -23,5 +23,5 @@ RUN chown -R appuser:appgroup /app
 # ---- Drop privileges ----
 USER appuser
 
-# ---- Populate the database and start dev ----
-CMD sh -c "npm run seed && PORT=$BACKEND_PORT npm run server & PORT=$FRONTEND_PORT npm start --prefix frontend"
+# ---- Run backend and frontend ----
+CMD sh -c "PORT=$BACKEND_PORT npm run server & PORT=$FRONTEND_PORT npm start --prefix frontend"

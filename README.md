@@ -81,11 +81,20 @@ PORT=3000
 
 ---
 
-## 🚀 Local Development Setup
+## ☁️ Cloud Database Setup (MongoDB Atlas)
 
-This setup runs **MongoDB in Docker** and the **app on the host machine**.
+Instead of running MongoDB locally, you can use our MongoDB Atlas cluster:
 
-### 1️⃣ Start MongoDB
+Connection string:
+```env
+MONGO_URI=mongodb+srv://ahmedemad8:0GhF7o9qKQ2Fib1y@zootopia.ccmdxat.mongodb.net/
+```
+
+---
+
+## 🚀 Local Database Setup
+
+## 1️⃣ Start MongoDB Locally
 
 ```bash
 docker run --name petshop-mongo -d -p 27017:27017 mongo
@@ -104,7 +113,11 @@ npm run seed
 
 ---
 
-### 3️⃣ Install Backend Dependencies
+## 🚀 Local Development Setup
+
+This setup runs **MongoDB in Docker** and the **app on the host machine**.
+
+### 1️⃣ Install Backend Dependencies
 
 ```bash
 cd app
@@ -113,7 +126,7 @@ npm install
 
 ---
 
-### 4️⃣ Install Frontend Dependencies
+### 2️⃣ Install Frontend Dependencies
 
 ```bash
 cd app/frontend
@@ -122,7 +135,7 @@ npm install
 
 ---
 
-### 5️⃣ Run the Application (Dev Mode)
+### 3️⃣ Run the Application (Dev Mode)
 
 ```bash
 cd app
@@ -136,7 +149,7 @@ npm run dev
 
 ## 🐳 Docker Setup (Recommended)
 
-This setup runs **MongoDB, Backend, and Frontend fully containerized** using Docker Compose.
+This setup runs **Backend and Frontend fully containerized** using Docker Compose.
 
 ### 1️⃣ Build and Start All Services
 
@@ -147,16 +160,14 @@ docker-compose up -d --build
 Docker Compose will:
 
 * Create a private Docker network
-* Start MongoDB with persistent volume
-* Seed the database
 * Run backend and frontend services
 
 ---
 
 ### 2️⃣ Access the Application
 
-* Frontend → [http://localhost:3000](http://localhost:3000)
-* Backend API → [http://localhost:5000](http://localhost:5000)
+* Frontend → [http://localhost:3001](http://localhost:3001)
+* Backend API → [http://localhost:5001](http://localhost:5001)
 
 ---
 
@@ -168,47 +179,25 @@ Docker Compose will:
 docker pull hlahany/zootopia-petshop:latest
 ```
 
-2. **Create a Docker Network** (optional but recommended for container communication)
-
-```bash
-docker network create zootopia-net
-```
-
-3. **Start MongoDB**
-
-```bash
-docker run -d \
-  --name petshop-mongo \
-  --network zootopia-net \
-  -p 27017:27017 \
-  -v mongo-data:/data/db \
-  mongo:7
-```
-
-* `--network zootopia-net` ensures the app can reach Mongo using the container name (`petshop-mongo`)
-* Data is persisted in a Docker volume `mongo-data`
-
 4. **Run the App Container**
 
 ```bash
 docker run -d \
   --name petshop-app \
-  --network zootopia-net \
-  -p 5000:5000 \
-  -p 3000:3000 \
-  -e MONGO_URI=mongodb://petshop-mongo:27017/petshop \
-  -e BACKEND_PORT=5000 \
-  -e FRONTEND_PORT=3000 \
+  -p 5002:5002 \
+  -p 3002:3002 \
+  -e MONGO_URI="mongodb+srv://ahmedemad8:0GhF7o9qKQ2Fib1y@zootopia.ccmdxat.mongodb.net/" \
+  -e BACKEND_PORT=5002 \
+  -e FRONTEND_PORT=3002 \
   hlahany/zootopia-petshop:latest
 ```
 
 * Environment variables override `.env` values inside the container.
-* The app connects to Mongo via `mongodb://petshop-mongo:27017/petshop`.
 
 5. **Access the App**
 
-* Backend: [http://localhost:5000](http://localhost:5000)
-* Frontend: [http://localhost:3000](http://localhost:3000)
+* Backend: [http://localhost:5002](http://localhost:5002)
+* Frontend: [http://localhost:3002](http://localhost:3002)
 
 ---
 
@@ -227,13 +216,6 @@ docker run -d \
 
 ```bash
 docker-compose down
-```
-
-### Stop and remove Mongo (for local setup)
-
-```bash
-docker stop petshop-mongo
-docker rm petshop-mongo
 ```
 
 ---
