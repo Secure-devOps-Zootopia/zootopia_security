@@ -32,10 +32,41 @@ jobs:
       - name: Weekly DAST scan (ZAP)
         uses: zaproxy/action-baseline@v0.11.0
         with:
-          target:$STAGING_URL
+          target: ${{ env.STAGING_URL }}
           format: json
-          output:  dast-weekly-report.json
+          output: dast-weekly-report.json
 
+      # ----------------------
+      # Security Headers Check
+      # ----------------------
+      - name: Weekly Security Headers Scan
+        continue-on-error: true
+        run: |
+          pip install observatory-cli
+          observatory ${{ env.STAGING_URL }} --format=report --zero --rescan > security-headers-weekly.txt 2>&1 || true
+          curl -I ${{ env.STAGING_URL }} >> security-headers-weekly.txt 2>&1 || true
+
+      # ----------------------
+      # SSL/TLS Security Check
+      # ----------------------
+      - name: Weekly SSL/TLS Scan
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/drwetter/testssl.sh.git
+          cd testssl.sh
+          ./testssl.sh --severity HIGH --jsonfile-pretty ../ssl-weekly.json zootopia-security.onrender.com || true
+          ./testssl.sh --severity HIGH zootopia-security.onrender.com > ../ssl-weekly.txt 2>&1 || true
+
+      # ----------------------
+      # Container Security Scan
+      # ----------------------
+      - name: Weekly Docker Image Security Scan
+        continue-on-error: true
+        run: |
+          docker pull hlahany/zootopia-petshop:latest
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+          docker scout cves hlahany/zootopia-petshop:latest --format sarif --output scout-weekly.sarif 2>&1 || true
+          docker scout cves hlahany/zootopia-petshop:latest > scout-weekly.txt 2>&1 || true
 
 #       # ----------------------
 #       # Cloud Security Posture – AWS
@@ -44,7 +75,7 @@ jobs:
 #         run: |
 #           pip install prowler
 #           prowler aws \
-#             --severity critical \
+#             --severity high,critical \
 #             --output-formats json \
 #             --output-directory prowler-weekly-output
 
@@ -74,4 +105,8 @@ jobs:
           name: weekly-security-reports
           path: |
             dast-weekly-report.json
-            
+            security-headers-weekly.txt
+            ssl-weekly.txt
+            ssl-weekly.json
+            scout-weekly.txt
+            scout-weekly.sarif
