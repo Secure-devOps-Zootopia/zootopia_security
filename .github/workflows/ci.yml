@@ -88,16 +88,16 @@ jobs:
 
     # Docker Image Scan (CI)
     # ----------------------
-    - name: Pull Docker image
-      run: docker pull hlahany/zootopia-petshop:latest
-    
-    - name: Trivy Docker image scan
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        image-ref: hlahany/zootopia-petshop:latest
-        severity: CRITICAL
-        format: sarif
-        output: trivy-image-report.sarif
+      - name: Pull Docker image
+        run: docker pull hlahany/zootopia-petshop:latest
+      
+      - name: Trivy Docker image scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: hlahany/zootopia-petshop:latest
+          severity: CRITICAL
+          format: sarif
+          output: trivy-image-report.sarif
 
     # ----------------------
     #  SBOM Generation
@@ -133,4 +133,5 @@ jobs:
             trivy-fs-report.sarif
             trivy-image-report.sarif
             sbom.json
+
 
