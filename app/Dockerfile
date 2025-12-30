@@ -23,5 +23,5 @@ RUN chown -R appuser:appgroup /app
 # ---- Drop privileges ----
 USER appuser
 
-# ---- Run backend and frontend ----
+# ---- Run backend & frontend ----
 CMD sh -c "PORT=$BACKEND_PORT npm run server & PORT=$FRONTEND_PORT npm start --prefix frontend"

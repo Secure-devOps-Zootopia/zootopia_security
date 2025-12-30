@@ -33,7 +33,7 @@ const Footer = () => {
               <a href="https://zootopia.dev">zootopia.dev</a>
             </p>
             <p>
-              GitHub: <a href="https://github.com/zootopia">zootopia</a>
+              GitHub: <a href="https://github.com/Secure-devOps-Zootopia">zootopia</a>
             </p>
           </Col>
           <Col xs={6} md={3} className="mb-5">
