@@ -166,8 +166,8 @@ Docker Compose will:
 
 ### 2️⃣ Access the Application
 
-* Frontend → [http://localhost:3001](http://localhost:3001)
-* Backend API → [http://localhost:5001](http://localhost:5001)
+* Frontend → [http://localhost:3000](http://localhost:3000)
+* Backend API → [http://localhost:5000](http://localhost:5000)
 
 ---
 
@@ -184,11 +184,11 @@ docker pull hlahany/zootopia-petshop:latest
 ```bash
 docker run -d \
   --name petshop-app \
-  -p 5002:5002 \
-  -p 3002:3002 \
+  -p 5000:5000 \
+  -p 3000:3000 \
   -e MONGO_URI="mongodb+srv://ahmedemad8:0GhF7o9qKQ2Fib1y@zootopia.ccmdxat.mongodb.net/" \
-  -e BACKEND_PORT=5002 \
-  -e FRONTEND_PORT=3002 \
+  -e BACKEND_PORT=5000 \
+  -e FRONTEND_PORT=3000 \
   hlahany/zootopia-petshop:latest
 ```
 
@@ -196,8 +196,8 @@ docker run -d \
 
 5. **Access the App**
 
-* Backend: [http://localhost:5002](http://localhost:5002)
-* Frontend: [http://localhost:3002](http://localhost:3002)
+* Backend: [http://localhost:5000](http://localhost:5000)
+* Frontend: [http://localhost:3000](http://localhost:3000)
 
 ---
 
