@@ -29,12 +29,22 @@ jobs:
       # ----------------------
       # DAST – Runtime App Security
       # ----------------------
-      - name: Weekly DAST scan (ZAP)
-        uses: zaproxy/action-baseline@v0.11.0
+      - name: Run DAST scan (OWASP ZAP)
+        uses: zaproxy/action-full-scan@v0.7.0
         with:
           target: ${{ env.STAGING_URL }}
-          format: json
-          output: dast-weekly-report.json
+          fail_action: false
+          allow_issue_writing: false
+      
+      - name: Upload DAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scheduled_dast-report
+          path: |
+            scheduled_dast_report_html.html
+            scheduled_dast_report_json.json
+            scheduled_dast_report_md.md
 
       # ----------------------
       # Security Headers Check
@@ -104,7 +114,6 @@ jobs:
         with:
           name: weekly-security-reports
           path: |
-            dast-weekly-report.json
             security-headers-weekly.txt
             ssl-weekly.txt
             ssl-weekly.json

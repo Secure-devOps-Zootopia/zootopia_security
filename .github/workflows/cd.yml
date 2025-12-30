@@ -83,9 +83,18 @@ jobs:
         uses: zaproxy/action-full-scan@v0.7.0
         with:
           target: ${{ env.STAGING_URL }}
-          format: json
-          output: dast-report.json
-    #     fail_action: true
+          fail_action: false
+          allow_issue_writing: false
+      
+      - name: Upload DAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-report
+          path: |
+            dast_report_html.html
+            dast_report_json.json
+            dast_report_md.md
 
 
       # ----------------------
@@ -145,7 +154,6 @@ jobs:
         with:
           name: cd-security-reports
           path: |
-            dast-report.json
             security-headers-report.txt
             ssl-report.txt
             ssl-report.json
