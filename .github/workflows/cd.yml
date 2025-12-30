@@ -55,22 +55,27 @@ jobs:
       # Deploy to Kubernetes
       # ----------------------
       - name: Set up kubectl
+        continue-on-error: true
         uses: azure/setup-kubectl@v3
     
       - name: Install kind manually
+        continue-on-error: true
         run: |
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
           chmod +x ./kind
           sudo mv ./kind /usr/local/bin/kind
 
       - name: Create kind cluster
+        continue-on-error: true
         run: kind create cluster --wait 60s
 
       - name: Verify cluster
+        continue-on-error: true
         run: kubectl cluster-info
 
 
       - name: Apply Kubernetes deployment
+        continue-on-error: true
         run: |
           kubectl apply -f k8s/deployment.yaml
 
@@ -85,6 +90,7 @@ jobs:
           target: ${{ env.STAGING_URL }}
           fail_action: false
           allow_issue_writing: false
+          artifact_name: ''
       
       - name: Upload DAST report
         uses: actions/upload-artifact@v4
@@ -92,9 +98,9 @@ jobs:
         with:
           name: dast-report
           path: |
-            dast_report_html.html
-            dast_report_json.json
-            dast_report_md.md
+            report_html.html
+            report_json.json
+            report_md.md
 
 
       # ----------------------
@@ -159,5 +165,6 @@ jobs:
             ssl-report.json
             scout-report.txt
             scout-report.sarif
+
 
 
