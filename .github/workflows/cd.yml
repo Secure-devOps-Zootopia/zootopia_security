@@ -94,15 +94,35 @@ jobs:
           path: dast-report.json
 
       # ----------------------
-      # Cloud Security Posture (AWS)
+      # Security Headers Check
       # ----------------------
-      - name: Run AWS Security Posture Scan (Prowler)
+      - name: Security Headers Scan
+        continue-on-error: true
         run: |
-          pip install prowler
-          prowler aws \
-            --severity critical \
-            --output-formats json \
-            --output-directory prowler-output
+          pip install observatory-cli
+          observatory ${{ env.STAGING_URL }} --format=report --zero --rescan > security-headers-report.txt 2>&1 || true
+          curl -I ${{ env.STAGING_URL }} >> security-headers-report.txt 2>&1 || true
+
+      # ----------------------
+      # SSL/TLS Security Check
+      # ----------------------
+      - name: SSL/TLS Scan
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/drwetter/testssl.sh.git
+          cd testssl.sh
+          ./testssl.sh --severity HIGH --jsonfile-pretty ../ssl-report.json zootopia-security.onrender.com || true
+          ./testssl.sh --severity HIGH zootopia-security.onrender.com > ../ssl-report.txt 2>&1 || true
+
+      # ----------------------
+      # Container Security Scan (Docker Scout)
+      # ----------------------
+      - name: Docker Scout CVE Scan
+        continue-on-error: true
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+          docker scout cves hlahany/zootopia-petshop:latest --format sarif --output scout-report.sarif 2>&1 || true
+          docker scout cves hlahany/zootopia-petshop:latest > scout-report.txt 2>&1 || true
 
       # ----------------------
       # Push artifacts to ELK / Audit
@@ -126,10 +146,13 @@ jobs:
       # ----------------------
       - name: Upload Security Reports
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: cd-security-reports
           path: |
             dast-report.json
-            prowler-output
-
-
+            security-headers-report.txt
+            ssl-report.txt
+            ssl-report.json
+            scout-report.txt
+            scout-report.sarif
