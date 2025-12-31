@@ -3,7 +3,24 @@
 **Secure DevOps Project**
 
 Zootopia Petshop is a full-stack MERN (MongoDB, Express, React, Node.js) application developed as part of a **Secure DevOps** course project.
-The project supports **both local development and Docker-based deployment**, following DevOps best practices such as containerization, environment isolation, and reproducibility.
+The project supports local development, Docker-based deployment, Docker Hub distribution, and cloud deployment, following DevOps best practices such as containerization, environment isolation, and reproducibility.
+
+---
+
+## 🌐 Live Deployment (Render)
+
+The application is **publicly deployed on Render** and accessible at:
+
+👉 **[https://zootopia-security.onrender.com/](https://zootopia-security.onrender.com/)**
+
+This deployment uses:
+
+* **Render** for application hosting
+* **MongoDB Atlas** as the managed cloud database
+* Environment variables securely configured via Render dashboard
+
+> This represents the **production-ready deployment** of the project.
+
 
 ---
 
@@ -60,14 +77,14 @@ GOOGLE_CLIENT_ID=811912472828-9mbtl501muu3qs00s9j7vvaidsvgc44t.apps.googleuserco
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=ahmedemad8@gmail.com
-SMTP_PASS=yqzj xcgu fijb cmof
+SMTP_USER=<email>
+SMTP_PASS=<app_password>
 SMTP_FROM="Zootopia PetShop"
 SMTP_SECURE=true
 MFA_OTP_TTL_MIN=10
 MFA_OTP_MAX_ATTEMPTS=5
 
-JWT_MFA_TEMP_SECRET=dev_secret_123_emad
+JWT_MFA_TEMP_SECRET=dev_secret_123
 ```
 
 ### Frontend (`app/frontend/.env`)
@@ -224,10 +241,10 @@ docker-compose down
 
 **Zootopia Petshop – Secure DevOps Project**
 Developed by:
-*Ahmed Emad*
-*Hla Hany*
-*Habiba Assem*
-*Khadija Swelam*
-*Nada Tarek*
+* Ahmed Emad
+* Hla Hany
+* Habiba Assem
+* Khadija Swelam
+* Nada Tarek
 
 ---
